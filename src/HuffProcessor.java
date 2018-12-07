@@ -103,7 +103,7 @@ public class HuffProcessor {
                     break;  // out of loop
                 }
                 else {
-                    out.write(current.myValue);
+                    out.writeBits(BITS_PER_WORD, current.myValue);
                     current = root;  // start back after leaf
                 }
             }
