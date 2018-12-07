@@ -43,11 +43,6 @@ public class HuffProcessor {
 	 */
 	public void compress(BitInputStream in, BitOutputStream out){
 
-//		while (true){
-//			int val = in.readBits(BITS_PER_WORD);
-//			if (val == -1) break;
-//			out.writeBits(BITS_PER_WORD, val);
-//		}
 		int[] counts = readForCounts(in);
 		HuffNode root = makeTreeFromCounts(counts);
 		String[] codings = makeCodingsFromTree(root);
@@ -80,7 +75,9 @@ public class HuffProcessor {
 				pq.add(new HuffNode(i, freq[i]));
 			}
 		}
-		//pq.add(new HuffNode(PSEUDO_EOF, 1));
+		if (myDebugLevel >= DEBUG_HIGH) {
+			System.out.printf("Created pq with %d nodes\n", pq.size());
+		}
 		while (pq.size() > 1) {
 		    HuffNode left = pq.remove();
 		    HuffNode right = pq.remove();
@@ -97,27 +94,27 @@ public class HuffProcessor {
 		return encodings;
 	}
 	
-	private void codingHelper(HuffNode root, String path, String[] codings) {
+	private void codingHelper(HuffNode root, String path, String[] encodings) {
 		if (root == null) return;
 		if (root.myLeft == null && root.myRight == null) {
-			codings[root.myValue] = path;
+			encodings[root.myValue] = path;
+			if (myDebugLevel >= DEBUG_HIGH) {
+				System.out.printf("Encoding for %d is %s\n", root.myValue, path);
+			}
 			return;
 		}
-		codingHelper(root.myLeft, path+"0", codings);
-		codingHelper(root.myRight, path+"1", codings);
+		codingHelper(root.myLeft, path+"0", encodings);
+		codingHelper(root.myRight, path+"1", encodings);
 	}
 	
 	private void writeHeader(HuffNode root, BitOutputStream out) {
 		if (root == null) return;
 		if (root.myLeft == null && root.myRight == null) {
 			out.writeBits(1, 1);
-			//System.out.print(1);
 			out.writeBits(BITS_PER_WORD + 1, root.myValue);
-			//System.out.print(root.value());
 			return;
 		}
 		out.writeBits(1, 0);
-		//System.out.print(0);
 		writeHeader(root.myLeft, out);
 		writeHeader(root.myRight, out);
 	}
